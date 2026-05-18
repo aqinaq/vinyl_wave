@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-
+import '../services/album_repository_provider.dart';
 import '../models/album.dart';
-import '../services/album_repository.dart';
-import '../services/album_service.dart';
 import '../state/cart_controller.dart';
 import '../widgets/album_cover_image.dart';
 
@@ -27,10 +25,7 @@ class StoreScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final cartController = context.read<CartController>();
 
-    final albumRepository = AlbumRepository(
-      localService: AlbumService(),
-      networkService: null,
-    );
+    final albumRepository = createAlbumRepository();
 
     return FutureBuilder<List<Album>>(
       future: albumRepository.getAlbums(),

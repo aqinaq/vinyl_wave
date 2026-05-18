@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import '../services/album_repository_provider.dart';
 import '../models/album.dart';
-import '../services/album_repository.dart';
-import '../services/album_service.dart';
 import '../state/player_controller.dart';
 import '../widgets/album_cover_image.dart';
 
@@ -21,10 +19,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   void initState() {
     super.initState();
 
-    final albumRepository = AlbumRepository(
-      localService: AlbumService(),
-      networkService: null,
-    );
+    final albumRepository = createAlbumRepository();
 
     albumsFuture = albumRepository.getAlbums();
   }

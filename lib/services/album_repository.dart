@@ -12,15 +12,15 @@ class AlbumRepository {
   });
 
   Future<List<Album>> getAlbums() async {
-    if (networkService != null) {
-      try {
-        return await networkService!.getAlbums();
-      } catch (_) {
-        return localService.getAlbums();
-      }
+    if (networkService == null) {
+      return localService.getAlbums();
     }
 
-    return localService.getAlbums();
+    try {
+      return await networkService!.getAlbums();
+    } catch (error) {
+      return localService.getAlbums();
+    }
   }
 
   Future<Album?> getAlbumById(String id) async {

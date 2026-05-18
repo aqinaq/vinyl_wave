@@ -17,12 +17,18 @@ class NetworkAlbumService {
     final response = await http.get(uri);
 
     if (response.statusCode != 200) {
-      throw Exception('Failed to load albums. Status code: ${response.statusCode}');
+      throw Exception(
+        'Failed to load remote albums. Status code: ${response.statusCode}',
+      );
     }
 
-    final List<dynamic> jsonList = jsonDecode(response.body) as List<dynamic>;
+    final decoded = jsonDecode(response.body);
 
-    return jsonList.map((jsonItem) {
+    if (decoded is! List) {
+      throw Exception('Remote albums JSON must be a list.');
+    }
+
+    return decoded.map((jsonItem) {
       return Album.fromJson(jsonItem as Map<String, dynamic>);
     }).toList();
   }

@@ -10,15 +10,11 @@ import '../screens/home_screen.dart';
 import '../screens/not_found_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/store_screen.dart';
-import '../services/album_repository.dart';
-import '../services/album_service.dart';
+import '../services/album_repository_provider.dart';
 import '../state/cart_controller.dart';
 
 GoRouter createAppRouter() {
-  final albumRepository = AlbumRepository(
-    localService: AlbumService(),
-    networkService: null,
-  );
+  final albumRepository = createAlbumRepository();
 
   return GoRouter(
     initialLocation: '/',

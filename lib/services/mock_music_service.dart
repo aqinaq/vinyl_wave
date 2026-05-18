@@ -1,24 +1,11 @@
 import '../models/explore_data.dart';
-import 'album_repository.dart';
-import 'album_service.dart';
-import 'network_album_service.dart';
+import 'album_repository_provider.dart';
 
 class MockMusicService {
-  final AlbumRepository albumRepository = AlbumRepository(
-    localService: AlbumService(),
-
-    // Later, replace this with your real hosted JSON URL.
-    // Example:
-    // networkService: NetworkAlbumService(
-    //   albumsUrl: 'https://your-domain.com/albums.json',
-    // ),
-
-    networkService: null,
-  );
-
   Future<ExploreData> getExploreData() async {
-    await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(milliseconds: 700));
 
+    final albumRepository = createAlbumRepository();
     final albums = await albumRepository.getAlbums();
 
     return ExploreData(
