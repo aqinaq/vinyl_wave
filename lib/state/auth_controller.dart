@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import '../services/app_config.dart';
 
 class AuthController extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -12,6 +13,15 @@ class AuthController extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isSignedIn => _user != null;
   String? get errorMessage => _errorMessage;
+  bool get isAdmin {
+    final email = _user?.email;
+
+    if (email == null) {
+      return false;
+    }
+
+    return AppConfig.adminEmails.contains(email.toLowerCase());
+  }
 
   AuthController() {
     _auth.authStateChanges().listen((user) {
@@ -20,6 +30,7 @@ class AuthController extends ChangeNotifier {
       notifyListeners();
     });
   }
+
 
   Future<void> signUpWithEmail({
     required String email,

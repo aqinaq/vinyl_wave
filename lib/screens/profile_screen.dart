@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import '../widgets/admin_inventory_panel.dart';
 import '../services/preferences_service.dart';
 import '../state/auth_controller.dart';
 import '../state/favorites_controller.dart';
@@ -175,6 +175,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
             icon: const Icon(Icons.logout),
             label: const Text('Sign Out'),
           ),
+        if (authController.isAdmin) ...[
+          const SizedBox(height: 16),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.admin_panel_settings),
+              title: const Text('Admin Panel'),
+              subtitle: const Text('Manage vinyl stock, prices, and availability.'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => Scaffold(
+                      appBar: AppBar(
+                        title: const Text('Admin Inventory'),
+                      ),
+                      body: const AdminInventoryPanel(),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+
 
         const SizedBox(height: 24),
 

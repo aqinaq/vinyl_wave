@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vinyl_wave/models/album.dart';
+import 'package:vinyl_wave/models/track.dart';
 import 'package:vinyl_wave/state/cart_controller.dart';
 
 void main() {
@@ -14,12 +15,18 @@ void main() {
       id: 'proof',
       title: 'Proof',
       artist: 'BTS',
-      coverUrl: 'https://example.com/proof.jpg',
+      coverUrl: 'assets/images/proof.jpg',
       genre: 'Anthology',
       vinylPrice: 49.99,
       tracks: [
-        'Yet To Come',
-        'Run BTS',
+        Track(
+          title: 'Yet To Come',
+          audioPath: 'assets/audio/yet_to_come.mp3',
+        ),
+        Track(
+          title: 'Run BTS',
+          audioPath: 'assets/audio/run_bts.mp3',
+        ),
       ],
     );
 
@@ -27,12 +34,18 @@ void main() {
       id: 'wings',
       title: 'Wings',
       artist: 'BTS',
-      coverUrl: 'https://example.com/wings.jpg',
+      coverUrl: 'assets/images/wings.jpg',
       genre: 'K-Pop',
       vinylPrice: 36.99,
       tracks: [
-        'Blood Sweat & Tears',
-        'Begin',
+        Track(
+          title: 'Blood Sweat & Tears',
+          audioPath: 'assets/audio/fake_love.mp3',
+        ),
+        Track(
+          title: 'Begin',
+          audioPath: 'assets/audio/dynamite.mp3',
+        ),
       ],
     );
   });
@@ -60,7 +73,7 @@ void main() {
       expect(cartController.items.first.album.title, 'Proof');
       expect(cartController.items.first.quantity, 1);
       expect(cartController.itemCount, 1);
-      expect(cartController.subtotal, 49.99);
+      expect(cartController.subtotal, closeTo(49.99, 0.001));
     });
 
     test('adding same album increases quantity', () async {
@@ -73,7 +86,7 @@ void main() {
       expect(cartController.items.length, 1);
       expect(cartController.items.first.quantity, 2);
       expect(cartController.itemCount, 2);
-      expect(cartController.subtotal, 99.98);
+      expect(cartController.subtotal, closeTo(99.98, 0.001));
     });
 
     test('adds different albums separately', () async {
@@ -85,7 +98,7 @@ void main() {
 
       expect(cartController.items.length, 2);
       expect(cartController.itemCount, 2);
-      expect(cartController.subtotal, 86.98);
+      expect(cartController.subtotal, closeTo(86.98, 0.001));
     });
 
     test('decreases album quantity', () async {
@@ -98,7 +111,7 @@ void main() {
 
       expect(cartController.items.first.quantity, 1);
       expect(cartController.itemCount, 1);
-      expect(cartController.subtotal, 49.99);
+      expect(cartController.subtotal, closeTo(49.99, 0.001));
     });
 
     test('decreasing quantity from one removes album', () async {
@@ -137,12 +150,17 @@ void main() {
         customerName: 'Aigerim',
         email: 'test@example.com',
         address: 'Test Address',
+        deliveryType: 'Delivery',
+        selectedDate: DateTime(2026, 5, 18),
+        selectedTime: '14:30',
       );
 
       expect(cartController.items, isEmpty);
       expect(cartController.orders.length, 1);
       expect(cartController.orders.first.customerName, 'Aigerim');
-      expect(cartController.orders.first.total, 86.98);
+      expect(cartController.orders.first.deliveryType, 'Delivery');
+      expect(cartController.orders.first.selectedTime, '14:30');
+      expect(cartController.orders.first.total, closeTo(86.98, 0.001));
     });
   });
 }

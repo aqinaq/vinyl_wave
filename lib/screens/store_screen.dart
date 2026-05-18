@@ -3,7 +3,9 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../models/album.dart';
+import '../models/album_inventory.dart';
 import '../services/album_repository_provider.dart';
+import '../services/inventory_service.dart';
 import '../state/cart_controller.dart';
 import '../state/catalog_filter_controller.dart';
 import '../widgets/album_cover_image.dart';
@@ -46,6 +48,7 @@ class StoreScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final cartController = context.read<CartController>();
     final albumRepository = createAlbumRepository();
+    final inventoryService = InventoryService();
 
     return FutureBuilder<List<Album>>(
       future: albumRepository.getAlbums(),
@@ -80,114 +83,152 @@ class StoreScreen extends StatelessWidget {
           );
         }
 
-        final genres = _extractGenres(albums);
-        final filterController = context.watch<CatalogFilterController>();
-        final filteredAlbums = filterController.applyFilters(albums);
+        return StreamBuilder<Map<String, AlbumInventory>>(
+          stream: inventoryService.watchInventoryMap(),
+          builder: (context, inventorySnapshot) {
+            final inventoryMap = inventorySnapshot.data ?? {};
 
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final crossAxisCount = _calculateCrossAxisCount(
-              constraints.maxWidth,
-            );
+            final genres = _extractGenres(albums);
+            final filterController = context.watch<CatalogFilterController>();
+            final filteredAlbums = filterController.applyFilters(albums);
 
-            return CustomScrollView(
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 18, 16, 4),
-                    child: Text(
-                      'Vinyl Store',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final crossAxisCount = _calculateCrossAxisCount(
+                  constraints.maxWidth,
+                );
+
+                return CustomScrollView(
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 18, 16, 4),
+                        child: Text(
+                          'Vinyl Store',
+                          style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
 
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                    child: Text(
-                      'Search, filter, and shop BTS vinyl editions.',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ),
-                ),
-
-                SliverToBoxAdapter(
-                  child: CatalogFilterBar(
-                    genres: genres,
-                  ),
-                ),
-
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                    child: Text(
-                      '${filteredAlbums.length} vinyl record(s) found',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ),
-                ),
-
-                if (filteredAlbums.isEmpty)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        children: [
-                          const Icon(Icons.search_off, size: 64),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No vinyl records match your search.',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Try another keyword or reset filters.',
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                        child: Text(
+                          'Search, filter, and shop BTS vinyl editions.',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
                       ),
                     ),
-                  )
-                else
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 140),
-                    sliver: SliverGrid(
-                      delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                          final album = filteredAlbums[index];
 
-                          return _StoreVinylCard(
-                            album: album,
-                            onTap: () {
-                              context.push('/album/${album.id}');
-                            },
-                            onAddToCart: () {
-                              cartController.addAlbum(album);
+                    SliverToBoxAdapter(
+                      child: CatalogFilterBar(
+                        genres: genres,
+                      ),
+                    ),
 
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content:
-                                  Text('${album.title} added to cart'),
-                                ),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                        child: Text(
+                          '${filteredAlbums.length} vinyl record(s) found',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ),
+                    ),
+
+                    if (filteredAlbums.isEmpty)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            children: [
+                              const Icon(Icons.search_off, size: 64),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No vinyl records match your search.',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Try another keyword or reset filters.',
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 140),
+                        sliver: SliverGrid(
+                          delegate: SliverChildBuilderDelegate(
+                                (context, index) {
+                              final album = filteredAlbums[index];
+                              final inventory = inventoryMap[album.id];
+
+                              final salePrice = inventory?.salePrice;
+                              final displayPrice =
+                                  salePrice ?? album.vinylPrice;
+
+                              final stock = inventory?.stock ?? 10;
+                              final isSoldOut =
+                                  inventory?.isSoldOut == true || stock <= 0;
+
+                              final albumForCart = album.copyWith(
+                                vinylPrice: displayPrice,
+                              );
+
+                              return _StoreVinylCard(
+                                album: album,
+                                displayPrice: displayPrice,
+                                originalPrice: album.vinylPrice,
+                                stock: stock,
+                                isSoldOut: isSoldOut,
+                                onTap: () {
+                                  context.push('/album/${album.id}');
+                                },
+                                onAddToCart: () {
+                                  if (isSoldOut) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          '${album.title} is sold out.',
+                                        ),
+                                      ),
+                                    );
+                                    return;
+                                  }
+
+                                  cartController.addAlbum(albumForCart);
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        '${album.title} added to cart',
+                                      ),
+                                    ),
+                                  );
+                                },
                               );
                             },
-                          );
-                        },
-                        childCount: filteredAlbums.length,
+                            childCount: filteredAlbums.length,
+                          ),
+                          gridDelegate:
+                          SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: crossAxisCount,
+                            crossAxisSpacing: 14,
+                            mainAxisSpacing: 14,
+                            childAspectRatio: 0.78,
+                          ),
+                        ),
                       ),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: crossAxisCount,
-                        crossAxisSpacing: 14,
-                        mainAxisSpacing: 14,
-                        childAspectRatio: 0.78,
-                      ),
-                    ),
-                  ),
-              ],
+                  ],
+                );
+              },
             );
           },
         );
@@ -198,14 +239,24 @@ class StoreScreen extends StatelessWidget {
 
 class _StoreVinylCard extends StatelessWidget {
   final Album album;
+  final double displayPrice;
+  final double originalPrice;
+  final int stock;
+  final bool isSoldOut;
   final VoidCallback onTap;
   final VoidCallback onAddToCart;
 
   const _StoreVinylCard({
     required this.album,
+    required this.displayPrice,
+    required this.originalPrice,
+    required this.stock,
+    required this.isSoldOut,
     required this.onTap,
     required this.onAddToCart,
   });
+
+  bool get hasSalePrice => displayPrice < originalPrice;
 
   @override
   Widget build(BuildContext context) {
@@ -214,69 +265,131 @@ class _StoreVinylCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 6,
-                child: Center(
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: AlbumCoverImage(
-                      imagePath: album.coverUrl,
-                      borderRadius: 16,
-                      padding: 8,
-                      fit: BoxFit.contain,
-                      fallbackIconSize: 42,
-                      backgroundColor: const Color(0xFF201C2B),
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              Text(
-                album.title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-
-              const SizedBox(height: 3),
-
-              Text(
-                album.artist,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-
-              const SizedBox(height: 8),
-
-              Row(
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: Text(
-                      '\$${album.vinylPrice.toStringAsFixed(2)}',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    flex: 6,
+                    child: Center(
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: AlbumCoverImage(
+                          imagePath: album.coverUrl,
+                          borderRadius: 16,
+                          padding: 8,
+                          fit: BoxFit.contain,
+                          fallbackIconSize: 42,
+                          backgroundColor: const Color(0xFF201C2B),
+                        ),
                       ),
                     ),
                   ),
-                  IconButton.filledTonal(
-                    onPressed: onAddToCart,
-                    icon: const Icon(Icons.add_shopping_cart),
-                    tooltip: 'Add to cart',
+
+                  const SizedBox(height: 10),
+
+                  Text(
+                    album.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 3),
+
+                  Text(
+                    isSoldOut ? 'Sold out' : 'Stock: $stock',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: isSoldOut
+                          ? Theme.of(context).colorScheme.error
+                          : null,
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: hasSalePrice
+                            ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '\$${originalPrice.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                decoration: TextDecoration.lineThrough,
+                                fontSize: 12,
+                              ),
+                            ),
+                            Text(
+                              '\$${displayPrice.toStringAsFixed(2)}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        )
+                            : Text(
+                          '\$${displayPrice.toStringAsFixed(2)}',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      IconButton.filledTonal(
+                        onPressed: isSoldOut ? null : onAddToCart,
+                        icon: const Icon(Icons.add_shopping_cart),
+                        tooltip: 'Add to cart',
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+
+            if (hasSalePrice)
+              Positioned(
+                top: 8,
+                left: 8,
+                child: Chip(
+                  label: const Text('SALE'),
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                ),
+              ),
+
+            if (isSoldOut)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withOpacity(0.48),
+                  child: const Center(
+                    child: Text(
+                      'SOLD OUT',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        letterSpacing: 1.4,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );

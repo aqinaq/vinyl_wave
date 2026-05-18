@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vinyl_wave/models/track.dart';
 import 'package:vinyl_wave/widgets/track_tile.dart';
 
 void main() {
-  testWidgets('TrackTile displays track name and number', (tester) async {
+  testWidgets('TrackTile displays track title and number', (tester) async {
+    const track = Track(
+      title: 'Run BTS',
+      audioPath: 'assets/audio/run_bts.mp3',
+    );
+
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: Scaffold(
           body: TrackTile(
-            trackName: 'Run BTS',
+            track: track,
             trackNumber: 2,
-            onTap: () {},
+            onTap: null,
           ),
         ),
       ),
@@ -24,11 +30,16 @@ void main() {
   testWidgets('TrackTile calls onTap when tapped', (tester) async {
     bool wasTapped = false;
 
+    const track = Track(
+      title: 'Black Swan',
+      audioPath: 'assets/audio/fake_love.mp3',
+    );
+
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: TrackTile(
-            trackName: 'Black Swan',
+            track: track,
             trackNumber: 1,
             onTap: () {
               wasTapped = true;

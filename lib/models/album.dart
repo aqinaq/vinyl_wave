@@ -18,6 +18,25 @@ class Album {
     required this.vinylPrice,
     required this.tracks,
   });
+  Album copyWith({
+    String? id,
+    String? title,
+    String? artist,
+    String? coverUrl,
+    String? genre,
+    double? vinylPrice,
+    List<Track>? tracks,
+  }) {
+    return Album(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      artist: artist ?? this.artist,
+      coverUrl: coverUrl ?? this.coverUrl,
+      genre: genre ?? this.genre,
+      vinylPrice: vinylPrice ?? this.vinylPrice,
+      tracks: tracks ?? this.tracks,
+    );
+  }
 
   factory Album.fromJson(Map<String, dynamic> json) {
     return Album(
