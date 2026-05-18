@@ -1,6 +1,4 @@
-Here is a full detailed `README.md` you can copy directly into your GitHub repository.
 
-````markdown
 # VinylWave
 
 VinylWave is a Flutter music player and vinyl store application based on the concepts from *Flutter Apprentice*.  
