@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../services/album_repository_provider.dart';
+
 import '../models/album.dart';
+import '../services/album_repository_provider.dart';
 import '../state/cart_controller.dart';
+import '../state/catalog_filter_controller.dart';
 import '../widgets/album_cover_image.dart';
+import '../widgets/catalog_filter_bar.dart';
 
 class StoreScreen extends StatelessWidget {
   const StoreScreen({super.key});
@@ -21,10 +24,27 @@ class StoreScreen extends StatelessWidget {
     }
   }
 
+  List<String> _extractGenres(List<Album> albums) {
+    final genres = <String>{};
+
+    for (final album in albums) {
+      if (album.genre.contains('/')) {
+        final splitGenres = album.genre.split('/');
+
+        for (final genre in splitGenres) {
+          genres.add(genre.trim());
+        }
+      } else {
+        genres.add(album.genre.trim());
+      }
+    }
+
+    return genres.toList()..sort();
+  }
+
   @override
   Widget build(BuildContext context) {
     final cartController = context.read<CartController>();
-
     final albumRepository = createAlbumRepository();
 
     return FutureBuilder<List<Album>>(
@@ -60,6 +80,10 @@ class StoreScreen extends StatelessWidget {
           );
         }
 
+        final genres = _extractGenres(albums);
+        final filterController = context.watch<CatalogFilterController>();
+        final filteredAlbums = filterController.applyFilters(albums);
+
         return LayoutBuilder(
           builder: (context, constraints) {
             final crossAxisCount = _calculateCrossAxisCount(
@@ -82,47 +106,87 @@ class StoreScreen extends StatelessWidget {
 
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                     child: Text(
-                      'Shop BTS albums as collectible vinyl editions.',
+                      'Search, filter, and shop BTS vinyl editions.',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
                 ),
 
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
-                  sliver: SliverGrid(
-                    delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                        final album = albums[index];
+                SliverToBoxAdapter(
+                  child: CatalogFilterBar(
+                    genres: genres,
+                  ),
+                ),
 
-                        return _StoreVinylCard(
-                          album: album,
-                          onTap: () {
-                            context.push('/album/${album.id}');
-                          },
-                          onAddToCart: () {
-                            cartController.addAlbum(album);
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('${album.title} added to cart'),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                      childCount: albums.length,
-                    ),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: crossAxisCount,
-                      crossAxisSpacing: 14,
-                      mainAxisSpacing: 14,
-                      childAspectRatio: 0.78,
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: Text(
+                      '${filteredAlbums.length} vinyl record(s) found',
+                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
                 ),
+
+                if (filteredAlbums.isEmpty)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        children: [
+                          const Icon(Icons.search_off, size: 64),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No vinyl records match your search.',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Try another keyword or reset filters.',
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 140),
+                    sliver: SliverGrid(
+                      delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                          final album = filteredAlbums[index];
+
+                          return _StoreVinylCard(
+                            album: album,
+                            onTap: () {
+                              context.push('/album/${album.id}');
+                            },
+                            onAddToCart: () {
+                              cartController.addAlbum(album);
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content:
+                                  Text('${album.title} added to cart'),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                        childCount: filteredAlbums.length,
+                      ),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        crossAxisSpacing: 14,
+                        mainAxisSpacing: 14,
+                        childAspectRatio: 0.78,
+                      ),
+                    ),
+                  ),
               ],
             );
           },

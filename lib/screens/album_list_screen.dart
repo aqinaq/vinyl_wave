@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../models/explore_data.dart';
 import '../services/mock_music_service.dart';
+import '../state/catalog_filter_controller.dart';
 import '../widgets/album_card.dart';
+import '../widgets/catalog_filter_bar.dart';
 import '../widgets/genre_card.dart';
 import '../widgets/horizontal_album_list.dart';
 import '../widgets/section_title.dart';
@@ -59,6 +62,13 @@ class AlbumListScreen extends StatelessWidget {
         }
 
         final exploreData = snapshot.data!;
+        final filterController = context.watch<CatalogFilterController>();
+        final filteredAlbums = filterController.applyFilters(
+          exploreData.fullDiscography,
+        );
+
+        final isFiltering = filterController.searchQuery.isNotEmpty ||
+            filterController.selectedGenre != 'All';
 
         return ListView(
           children: [
@@ -72,55 +82,94 @@ class AlbumListScreen extends StatelessWidget {
                 ),
               ),
             ),
+
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               child: Text(
-                'Listen to previews and shop vinyl editions.',
+                'Listen to tracks, discover albums, and shop vinyl editions.',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ),
-            const SectionTitle(
-              title: 'Featured Albums',
-              subtitle: 'Popular records from BTS discography.',
+
+            CatalogFilterBar(
+              genres: exploreData.genres,
             ),
-            HorizontalAlbumList(
-              albums: exploreData.featuredAlbums,
-            ),
-            const SectionTitle(
-              title: 'New Vinyl Arrivals',
-              subtitle: 'Shop selected vinyl editions.',
-            ),
-            HorizontalAlbumList(
-              albums: exploreData.newVinylArrivals,
-            ),
-            const SectionTitle(
-              title: 'Genres',
-              subtitle: 'Explore BTS music by sound and style.',
-            ),
-            SizedBox(
-              height: 100,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: exploreData.genres.length,
-                itemBuilder: (context, index) {
-                  return GenreCard(
-                    genre: exploreData.genres[index],
-                  );
-                },
+
+            if (!isFiltering) ...[
+              const SectionTitle(
+                title: 'Featured Albums',
+                subtitle: 'Popular records from BTS discography.',
               ),
-            ),
-            const SectionTitle(
-              title: 'Full Discography',
-              subtitle: 'Browse all available albums.',
-            ),
-            for (final album in exploreData.fullDiscography)
-              AlbumCard(
-                album: album,
-                onTap: () {
-                  context.push('/album/${album.id}');
-                },
+
+              HorizontalAlbumList(
+                albums: exploreData.featuredAlbums,
               ),
-            const SizedBox(height: 20),
+
+              const SectionTitle(
+                title: 'New Vinyl Arrivals',
+                subtitle: 'Shop selected vinyl editions.',
+              ),
+
+              HorizontalAlbumList(
+                albums: exploreData.newVinylArrivals,
+              ),
+
+              const SectionTitle(
+                title: 'Genres',
+                subtitle: 'Explore BTS music by sound and style.',
+              ),
+
+              SizedBox(
+                height: 100,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: exploreData.genres.length,
+                  itemBuilder: (context, index) {
+                    return GenreCard(
+                      genre: exploreData.genres[index],
+                    );
+                  },
+                ),
+              ),
+            ],
+
+            SectionTitle(
+              title: isFiltering ? 'Search Results' : 'Full Discography',
+              subtitle: isFiltering
+                  ? '${filteredAlbums.length} album(s) found.'
+                  : 'Browse all available albums.',
+            ),
+
+            if (filteredAlbums.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    const Icon(Icons.search_off, size: 64),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No matching albums found.',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Try another keyword, genre, or sorting option.',
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              )
+            else
+              for (final album in filteredAlbums)
+                AlbumCard(
+                  album: album,
+                  onTap: () {
+                    context.push('/album/${album.id}');
+                  },
+                ),
+
+            const SizedBox(height: 140),
           ],
         );
       },

@@ -10,6 +10,8 @@ import 'state/theme_controller.dart';
 import 'theme/app_theme.dart';
 import 'state/auth_controller.dart';
 import 'state/favorites_controller.dart';
+import 'state/catalog_filter_controller.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -71,6 +73,9 @@ class _VinylWaveAppState extends State<VinylWaveApp> {
         ),
         ChangeNotifierProvider<AuthController>(
           create: (_) => AuthController(),
+        ),
+        ChangeNotifierProvider<CatalogFilterController>(
+          create: (_) => CatalogFilterController(),
         ),
         ChangeNotifierProvider<CartController>(
           create: (_) {
