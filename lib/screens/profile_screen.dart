@@ -4,6 +4,7 @@ import '../widgets/admin_inventory_panel.dart';
 import '../services/preferences_service.dart';
 import '../state/auth_controller.dart';
 import '../state/favorites_controller.dart';
+import '../widgets/animated_loading.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -101,8 +102,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final favoritesController = context.watch<FavoritesController>();
 
     if (isLoading || authController.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
+      return const AnimatedLoading(
+        message: 'Loading profile...',
       );
     }
 

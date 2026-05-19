@@ -4,6 +4,7 @@ import '../services/album_repository_provider.dart';
 import '../models/album.dart';
 import '../state/player_controller.dart';
 import '../widgets/album_cover_image.dart';
+import '../widgets/animated_loading.dart';
 
 class PlayerScreen extends StatefulWidget {
   const PlayerScreen({super.key});
@@ -29,8 +30,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
     final playerController = context.watch<PlayerController>();
 
     if (playerController.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
+      return const AnimatedLoading(
+        message: 'Loading player...',
       );
     }
 

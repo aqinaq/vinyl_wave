@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-
+import '../widgets/success_pop_dialog.dart';
 import '../state/cart_controller.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -128,22 +128,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Order placed'),
-          content: Text(
-            'Your BTS vinyl order was created successfully.\n\n'
-                '$deliveryType on ${formatDate(selectedDate)} at ${formatTime(selectedTime)}.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                context.go('/store');
-              },
-              child: const Text('Done'),
-            ),
-          ],
+        return SuccessPopDialog(
+          title: 'Order placed',
+          message: 'Your BTS vinyl order was created successfully.\n\n'
+              '$deliveryType on ${formatDate(selectedDate)} at ${formatTime(selectedTime)}.',
+          onDone: () {
+            Navigator.of(dialogContext).pop();
+            context.go('/store');
+          },
         );
       },
     );

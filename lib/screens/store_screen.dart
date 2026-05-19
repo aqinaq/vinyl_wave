@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-
+import '../widgets/animated_loading.dart';
 import '../models/album.dart';
 import '../models/album_inventory.dart';
 import '../services/album_repository_provider.dart';
@@ -10,6 +10,8 @@ import '../state/cart_controller.dart';
 import '../state/catalog_filter_controller.dart';
 import '../widgets/album_cover_image.dart';
 import '../widgets/catalog_filter_bar.dart';
+import '../widgets/pressable_scale.dart';
+import '../widgets/animated_cart_button.dart';
 
 class StoreScreen extends StatelessWidget {
   const StoreScreen({super.key});
@@ -54,8 +56,8 @@ class StoreScreen extends StatelessWidget {
       future: albumRepository.getAlbums(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(),
+          return const AnimatedLoading(
+            message: 'Loading vinyl store...',
           );
         }
 
@@ -132,9 +134,25 @@ class StoreScreen extends StatelessWidget {
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                        child: Text(
-                          '${filteredAlbums.length} vinyl record(s) found',
-                          style: Theme.of(context).textTheme.bodyMedium,
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 250),
+                          transitionBuilder: (child, animation) {
+                            return FadeTransition(
+                              opacity: animation,
+                              child: SlideTransition(
+                                position: Tween<Offset>(
+                                  begin: const Offset(0, 0.25),
+                                  end: Offset.zero,
+                                ).animate(animation),
+                                child: child,
+                              ),
+                            );
+                          },
+                          child: Text(
+                            '${filteredAlbums.length} vinyl record(s) found',
+                            key: ValueKey(filteredAlbums.length),
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
                         ),
                       ),
                     ),
@@ -260,11 +278,11 @@ class _StoreVinylCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
+    return PressableScale(
+      onTap: onTap,
+      child: Card(
+        margin: EdgeInsets.zero,
+        clipBehavior: Clip.antiAlias,
         child: Stack(
           children: [
             Padding(
@@ -284,6 +302,7 @@ class _StoreVinylCard extends StatelessWidget {
                           fit: BoxFit.contain,
                           fallbackIconSize: 42,
                           backgroundColor: const Color(0xFF201C2B),
+                          heroTag: 'album-cover-${album.id}',
                         ),
                       ),
                     ),
@@ -350,10 +369,9 @@ class _StoreVinylCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      IconButton.filledTonal(
-                        onPressed: isSoldOut ? null : onAddToCart,
-                        icon: const Icon(Icons.add_shopping_cart),
-                        tooltip: 'Add to cart',
+                      AnimatedCartButton(
+                        enabled: !isSoldOut,
+                        onPressed: onAddToCart,
                       ),
                     ],
                   ),

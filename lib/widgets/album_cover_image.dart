@@ -9,6 +9,7 @@ class AlbumCoverImage extends StatelessWidget {
   final double padding;
   final double fallbackIconSize;
   final Color? backgroundColor;
+  final String? heroTag;
 
   const AlbumCoverImage({
     super.key,
@@ -20,6 +21,7 @@ class AlbumCoverImage extends StatelessWidget {
     this.padding = 10,
     this.fallbackIconSize = 42,
     this.backgroundColor,
+    this.heroTag,
   });
 
   bool get isAssetImage => imagePath.startsWith('assets/');
@@ -49,7 +51,7 @@ class AlbumCoverImage extends StatelessWidget {
       );
     }
 
-    return ClipRRect(
+    final cover = ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
       child: Container(
         width: width,
@@ -58,6 +60,38 @@ class AlbumCoverImage extends StatelessWidget {
         padding: EdgeInsets.all(padding),
         child: imageWidget,
       ),
+    );
+
+    if (heroTag == null) {
+      return cover;
+    }
+
+    return Hero(
+      tag: heroTag!,
+      flightShuttleBuilder: (
+          flightContext,
+          animation,
+          flightDirection,
+          fromHeroContext,
+          toHeroContext,
+          ) {
+        return Material(
+          color: Colors.transparent,
+          child: ScaleTransition(
+            scale: Tween<double>(
+              begin: 0.96,
+              end: 1.0,
+            ).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              ),
+            ),
+            child: toHeroContext.widget,
+          ),
+        );
+      },
+      child: cover,
     );
   }
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-
+import 'page_transitions.dart';
 import '../screens/album_detail_screen.dart';
 import '../screens/album_list_screen.dart';
 import '../screens/album_not_found_screen.dart';
@@ -55,27 +55,29 @@ GoRouter createAppRouter() {
         builder: (context, state) {
           final albumId = state.pathParameters['id'];
 
-          return FutureBuilder(
-            future: albumRepository.getAlbumById(albumId ?? ''),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Scaffold(
-                  body: Center(
-                    child: CircularProgressIndicator(),
-                  ),
+          return FadeSlidePage(
+            child: FutureBuilder(
+              future: albumRepository.getAlbumById(albumId ?? ''),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Scaffold(
+                    body: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+
+                final album = snapshot.data;
+
+                if (album == null) {
+                  return AlbumNotFoundScreen(albumId: albumId);
+                }
+
+                return AlbumDetailScreen(
+                  album: album,
                 );
-              }
-
-              final album = snapshot.data;
-
-              if (album == null) {
-                return AlbumNotFoundScreen(albumId: albumId);
-              }
-
-              return AlbumDetailScreen(
-                album: album,
-              );
-            },
+              },
+            ),
           );
         },
       ),
@@ -96,7 +98,9 @@ GoRouter createAppRouter() {
           return null;
         },
         builder: (context, state) {
-          return const CheckoutScreen();
+          return const BottomUpPage(
+            child: CheckoutScreen(),
+          );
         },
       ),
     ],

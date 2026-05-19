@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-
+import '../widgets/animated_loading.dart';
 import '../models/explore_data.dart';
 import '../services/mock_music_service.dart';
 import '../state/catalog_filter_controller.dart';
@@ -22,8 +22,8 @@ class AlbumListScreen extends StatelessWidget {
       future: musicService.getExploreData(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(),
+          return const AnimatedLoading(
+            message: 'Loading BTS discography...',
           );
         }
 
@@ -133,11 +133,29 @@ class AlbumListScreen extends StatelessWidget {
               ),
             ],
 
-            SectionTitle(
-              title: isFiltering ? 'Search Results' : 'Full Discography',
-              subtitle: isFiltering
-                  ? '${filteredAlbums.length} album(s) found.'
-                  : 'Browse all available albums.',
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              transitionBuilder: (child, animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, 0.15),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: child,
+                  ),
+                );
+              },
+              child: SectionTitle(
+                key: ValueKey(
+                  '${isFiltering}_${filteredAlbums.length}',
+                ),
+                title: isFiltering ? 'Search Results' : 'Full Discography',
+                subtitle: isFiltering
+                    ? '${filteredAlbums.length} album(s) found.'
+                    : 'Browse all available albums.',
+              ),
             ),
 
             if (filteredAlbums.isEmpty)

@@ -43,6 +43,7 @@ dependencies:
   firebase_auth: ^4.16.0
   cloud_firestore: ^4.14.0
   just_audio: ^0.9.37
+  lottie: ^2.7.0
 
 dev_dependencies:
   flutter_test:
@@ -56,6 +57,9 @@ dev_dependencies:
   flutter_lints: ^2.0.0
   mockito: ^5.4.4
   build_runner: ^2.4.9
+  fake_cloud_firestore: ^2.4.8
+  firebase_auth_mocks: ^0.13.0
+  golden_toolkit: ^0.15.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -72,6 +76,7 @@ flutter:
       - assets/data/albums.json
       - assets/images/
       - assets/audio/
+      - assets/animations/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -9,6 +9,8 @@ import '../widgets/track_tile.dart';
 import '../widgets/vinyl_price_box.dart';
 import '../widgets/reviews_section.dart';
 import '../widgets/album_cover_image.dart';
+import '../widgets/animated_cart_button.dart';
+import '../widgets/staggered_slide_item.dart';
 
 class AlbumDetailScreen extends StatefulWidget {
   final Album album;
@@ -58,6 +60,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                       padding: 18,
                       fit: BoxFit.contain,
                       fallbackIconSize: 90,
+                      heroTag: 'album-cover-${album.id}',
                     ),
                   ),
                 ),
@@ -116,21 +119,24 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
           SliverList(
             delegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    return TrackTile(
-                      track: album.tracks[index],
-                      trackNumber: index + 1,
-                      onTap: () {
-                        context.read<PlayerController>().setTrack(
-                          album: album,
-                          track: album.tracks[index],
-                        );
+                    return StaggeredSlideItem(
+                      index: index,
+                      child: TrackTile(
+                        track: album.tracks[index],
+                        trackNumber: index + 1,
+                        onTap: () {
+                          context.read<PlayerController>().setTrack(
+                            album: album,
+                            track: album.tracks[index],
+                          );
 
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Now playing: ${album.tracks[index].title}'),
-                          ),
-                        );
-                      },
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Now playing: ${album.tracks[index].title}'),
+                            ),
+                          );
+                        },
+                      ),
                     );
               },
               childCount: album.tracks.length,
@@ -182,7 +188,7 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
                     crossAxisCount: crossAxisCount,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
-                    childAspectRatio: 0.72,
+                    childAspectRatio: 0.78,
                   ),
                 ),
               );
@@ -260,14 +266,24 @@ class _AlbumInfoSection extends StatelessWidget {
 
         const SizedBox(height: 12),
 
-        OutlinedButton.icon(
-          onPressed: onCartPressed,
-          icon: Icon(
-            addedToCart ? Icons.check : Icons.shopping_cart_outlined,
-          ),
-          label: Text(
-            addedToCart ? 'Added to Cart' : 'Add Vinyl to Cart',
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: onCartPressed,
+                icon: Icon(
+                  addedToCart ? Icons.check : Icons.shopping_cart_outlined,
+                ),
+                label: Text(
+                  addedToCart ? 'Added to Cart' : 'Add Vinyl to Cart',
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            AnimatedCartButton(
+              onPressed: onCartPressed,
+            ),
+          ],
         ),
 
         const SizedBox(height: 12),
@@ -295,6 +311,7 @@ class _RelatedVinylCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
         onTap: onTap,
@@ -303,13 +320,18 @@ class _RelatedVinylCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-                  AlbumCoverImage(
+              Expanded(
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: AlbumCoverImage(
                     imagePath: album.coverUrl,
-                    width: double.infinity,
-                    height: 360,
-                    borderRadius: 0,
-                    fallbackIconSize: 90,
-
+                    borderRadius: 14,
+                    padding: 8,
+                    fit: BoxFit.contain,
+                    fallbackIconSize: 48,
+                    backgroundColor: const Color(0xFF201C2B),
+                  ),
+                ),
               ),
 
               const SizedBox(height: 8),

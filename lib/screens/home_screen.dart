@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-
+import '../widgets/slide_up_animation.dart';
 import '../screens/cart_screen.dart';
 import '../screens/orders_screen.dart';
 import '../screens/player_screen.dart';
@@ -168,11 +168,26 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
                 icon: const Icon(Icons.shopping_cart_outlined),
               ),
-              if (cartController.itemCount > 0)
-                Positioned(
-                  right: 6,
-                  top: 8,
-                  child: CircleAvatar(
+              Positioned(
+                right: 6,
+                top: 8,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  transitionBuilder: (child, animation) {
+                    return ScaleTransition(
+                      scale: animation,
+                      child: FadeTransition(
+                        opacity: animation,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: cartController.itemCount == 0
+                      ? const SizedBox(
+                    key: ValueKey('empty-cart-badge'),
+                  )
+                      : CircleAvatar(
+                    key: ValueKey(cartController.itemCount),
                     radius: 9,
                     child: Text(
                       '${cartController.itemCount}',
@@ -180,6 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
+              ),
             ],
           ),
         ],
@@ -204,8 +220,11 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
 
-          _MiniPlayerBar(
-            onTap: openPlayerBottomSheet,
+          SlideUpAnimation(
+            delay: const Duration(milliseconds: 150),
+            child: _MiniPlayerBar(
+              onTap: openPlayerBottomSheet,
+            ),
           ),
 
           NavigationBar(

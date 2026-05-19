@@ -29,6 +29,7 @@ class AlbumCard extends StatelessWidget {
                 height: 76,
                 borderRadius: 14,
                 fallbackIconSize: 36,
+                heroTag: 'album-cover-${album.id}',
               ),
               const SizedBox(width: 14),
               Expanded(
